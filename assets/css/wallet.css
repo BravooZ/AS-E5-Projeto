@@ -1,0 +1,32 @@
+.wallet-container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #222;
+    border-radius: 16px;
+    padding: 32px;
+    color: #fff;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+}
+
+.wallet-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.wallet-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.wallet-balance {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.chart-section {
+    margin-top: 32px;
+}
