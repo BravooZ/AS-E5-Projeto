@@ -39,11 +39,26 @@
             <div class="profile-name">Diogo</div>
             <div class="profile-email">diogo@email.com</div>
             <div class="profile-buttons">
-                <button class="profile-btn" onclick="showCars()">Meus Carros</button>
+                <button class="profile-btn" onclick="showCars()">Adicionar Carros</button>
                 <button class="profile-btn" onclick="toggleProfileForm()">Alterar Dados</button>
             </div>
         </div>
+        <div class="profile-form-card" id="cars-form-card" style="display:none;">
+            <h1>Adicionar Carros</h1>
+            <form>
+                <input type="text" placeholder="Marca">
+                <input type="text" placeholder="Modelo">
+                <input type="text" placeholder="Ano">
+                <input type="text" placeholder="Cor">
+                <button type="submit">Adicionar Carro</button>
+            </form>
+        </div>
         <div class="profile-form-card" id="profile-form-card" style="display:none;">
+            <h1>Alterar Dados do Perfil</h1>
+            <form>
+                <input type="text" placeholder="Nome Completo">
+                <input type="text" placeholder="Nome Abreviado">
+                <input type="date" placeholder="Data Nascimento">
             <h1>Alterar Dados do Perfil</h1>
             <form>
                 <input type="text" placeholder="Nome Completo">

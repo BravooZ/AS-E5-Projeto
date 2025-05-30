@@ -8,5 +8,10 @@ function toggleProfileForm() {
 }
 
 function showCars() {
-    alert('Funcionalidade de carros ainda não implementada.');
+    var form = document.getElementById('cars-form-card');
+    if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+    }
 }
