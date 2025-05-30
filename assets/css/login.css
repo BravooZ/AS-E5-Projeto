@@ -67,6 +67,7 @@ body {
     opacity: 0.9;
 }
 
+/* --- Isto força estilo mobile para coisas necessarias em todas as paginas --- */
 @media (max-width: 700px) {
     .navbar {
         flex-wrap: wrap;
@@ -106,13 +107,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 70vh;
+    gap: 32px;
 }
 .login-card {
     background: #232323;
     border-radius: 18px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    padding: 32px 40px 24px 40px;
+    padding: 24px 24px 16px 24px;
     color: #fff;
     min-width: 320px;
     max-width: 400px;
@@ -186,11 +187,14 @@ body {
 .social-button.facebook-button { background: #3b5998; color: #fff; }
 .social-button.facebook-button img { filter: invert(1); }
 
+
+/* --- Isto força estilo mobile para coisas necessarias nest pagina --- */
 @media (max-width: 700px) {
-    .main-content, .login-card {
-        min-width: 90vw;
-        max-width: 98vw;
-        padding: 18px 6vw;
+    .login-card {
+        width: 80vw;
     }
-    .login-card .logo { width: 60px; height: 60px; }
+    .logo { 
+        width: 60px; 
+        height: 60px; 
+    }
 }

@@ -67,7 +67,7 @@ body {
     opacity: 0.9;
 }
 
-/* --- MEDIA QUERIES --- */
+/* --- Isto força estilo mobile para coisas necessarias em todas as paginas --- */
 @media (max-width: 700px) {
     .navbar {
         flex-wrap: wrap;
@@ -99,26 +99,6 @@ body {
     .main-content {
         margin-top: 120px;
     }
-    .profile-card, .profile-form-card {
-        min-width: 90vw;
-        max-width: 95vw;
-        padding: 24px 20px;
-        width: auto;
-        margin: 0 10px 16px 10px;
-    }
-    .profile-image { 
-        width: 60px; 
-        height: 60px; 
-    }
-    .profile-buttons {
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
-    }
-    .profile-btn {
-        width: 100%;
-        padding: 12px 18px;
-    }
 }
 
 
@@ -129,17 +109,16 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 32px;
-    padding: 0 10px;
 }
 
 .profile-card, .profile-form-card {
     background: #232323;
     border-radius: 18px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    padding: 32px 40px 24px 40px;
+    padding: 24px 24px 16px 24px;
     color: #fff;
-    max-width: 600px;
-    width: 90vw;
+    min-width: 320px;
+    max-width: 400px;
     text-align: center;
     margin-bottom: 10px;
     display: flex;
@@ -169,6 +148,7 @@ body {
 }
 .profile-buttons {
     display: flex;
+    width: 40vw;
     gap: 16px;
     margin-bottom: 18px;
     justify-content: center;
@@ -194,7 +174,7 @@ body {
     margin-bottom: 18px;
 }
 .profile-form-card input, .profile-form-card select {
-    width: 100%;
+    width: 80vw;
     margin-bottom: 12px;
     border: none;
     border-bottom: 1px solid #3f3f3f;
@@ -225,6 +205,28 @@ body {
     background: #369b9b;
 }
 
-@media (max-width: 900px) {
-    .charts-container { flex-direction: column; align-items: center; }
+/* --- Isto força estilo mobile para coisas necessarias nest pagina --- */
+@media (max-width: 700px) {
+     .profile-card, .profile-form-card {
+        padding: 24px 20px;
+        width: 80vw;
+        margin: 0 10px 16px 10px;
+    }
+    .profile-image {
+        width: 60px;
+        height: 60px;
+    }
+    .profile-buttons {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+    .profile-btn {
+        width: 100%;
+        padding: 12px 18px;
+    }
+    .charts-container { 
+        flex-direction: column; 
+        align-items: center; 
+    }
 }

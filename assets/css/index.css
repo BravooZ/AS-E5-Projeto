@@ -67,6 +67,7 @@ body {
     opacity: 0.9;
 }
 
+/* --- Isto força estilo mobile para coisas necessarias em todas as paginas --- */
 @media (max-width: 700px) {
     .navbar {
         flex-wrap: wrap;
@@ -135,6 +136,8 @@ body {
     box-shadow: none;
     flex: 1 1 auto;
 }
+
+/* --- Isto força estilo mobile para coisas necessarias nest pagina --- */
 @media (max-width: 700px) {
     .main-content, .map-card {
         min-width: 100vw;
