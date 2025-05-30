@@ -5,85 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MultiPower</title>
     <link rel="stylesheet" href="assets/css/conta.css">
+    <script src="assets/js/conta.js"></script>
 </head>
 <body>
     <div class="navbar">
-    
-        <div class="navigation">
-            <a class="button" href="index.html">
-                <img src="assets/images/map.png" style="filter: invert(1);">
-                <div class="nav1">MAPA</div>
-            </a>
-        </div>
-    
-        <div class="navigation">
-            <a class="button" href="wallet.html">
-                <img src="assets/images/wallet.png" style="filter: invert(1);">
-                <div class="nav1">WALLET</div>
-            </a>
-        </div>
-        <div class="navigation">
-            <a class="button" href="conta.html">
-                <img src="assets/images/conta.jpg">
-                <div class="nav1">CONTA</div>
-            </a>
-        </div>
-        <div class="navigation">
-            <a class="button" href="login.html">
-                <img src="assets/images/logout.png">
-                <div class="nav1">LOGOUT</div>
-            </a>
-        </div>
+    <div class="navigation">
+      <a class="button" href="index.html">
+        <img src="assets/images/map.png" style="filter: invert(1);" />
+        <div class="nav1">MAPA</div>
+      </a>
     </div>
-
-    <div class="account-container">
-        <div class="account-header">
-            <img src="assets/images/diogo.jpeg" alt="Account Image" class="account-image">
-            <button class="account-button">Atualizar Perfil</button>
-        </div>
-        <p class="account-email"></p>
-
-        <div class="section">
-            <h1 style="padding-top: 25px;">Dados Pessoais</h1>
-            <div class="row">
-                <input type="text" class="large-input" id="nomeCompleto" placeholder="Nome Completo">
-                <input type="text" class="small-input" id="nomeAbreviado" placeholder="Nome Abreviado">
+    <div class="navigation">
+      <a class="button" href="wallet.html">
+        <img src="assets/images/wallet.png" style="filter: invert(1);" />
+        <div class="nav1">WALLET</div>
+      </a>
+    </div>    <div class="navigation">
+      <a class="button" href="conta.html">
+        <img src="assets/images/conta.png" style="filter: invert(1);"/>
+        <div class="nav1">CONTA</div>
+      </a>
+    </div>
+    <div class="navigation">
+      <a class="button" href="login.html">
+        <img src="assets/images/logout.png" style="filter: invert(1);" />
+        <div class="nav1">LOGOUT</div>
+      </a>
+    </div>
+  </div>
+    <div class="main-content">
+        <div class="profile-card">
+            <img src="assets/images/diogo.jpeg" alt="Account Image" class="profile-image">
+            <div class="profile-name">Diogo</div>
+            <div class="profile-email">diogo@email.com</div>
+            <div class="profile-buttons">
+                <button class="profile-btn" onclick="showCars()">Meus Carros</button>
+                <button class="profile-btn" onclick="toggleProfileForm()">Alterar Dados</button>
             </div>
-            <div class="row">
-                <input type="date" class="medium-input" id="dataNascimento" placeholder="Data Nascimento">
-                <select class="medium-input" id="genero">
+        </div>
+        <div class="profile-form-card" id="profile-form-card" style="display:none;">
+            <h1>Alterar Dados do Perfil</h1>
+            <form>
+                <input type="text" placeholder="Nome Completo">
+                <input type="text" placeholder="Nome Abreviado">
+                <input type="date" placeholder="Data Nascimento">
+                <select>
                     <option value="">Escolher Genero</option>
                     <option value="male">Masculino</option>
                     <option value="female">Feminino</option>
                 </select>
-                <input type="text" class="medium-input" id="NumeroCC" placeholder="Numero Cartao cidadao">
-            </div>
-        </div>
-    
-        <div class="section">
-            <h1>Contactos</h1>
-            <div class="row">
-                <input type="text" class="large-input" id="email" placeholder="Email">
-                <input type="text" class="small-input" id="nTelefone" placeholder="Telefone">
-            </div>
-        </div>
-    
-        <div class="section">
-            <h1>Morada</h1>
-            <div class="row">
-                <input type="text" class="larger-input" id="morada" placeholder="Morada">
-            </div>
-            <div class="row">
-                <input type="text" class="medium-input" id="cidade" placeholder="Cidade">
-                <input type="text" class="medium-input" id="codigoPostal" placeholder="Codigo Postal">
-                <input type="text" class="medium-input" id="pais" placeholder="País">
-            </div>
-            
+                <input type="text" placeholder="Numero Cartao cidadao">
+                <input type="text" placeholder="Email">
+                <input type="text" placeholder="Telefone">
+                <input type="text" placeholder="Morada">
+                <input type="text" placeholder="Cidade">
+                <input type="text" placeholder="Codigo Postal">
+                <input type="text" placeholder="País">
+                <button type="submit">Guardar Alterações</button>
+            </form>
         </div>
     </div>
-
-    <script src="assets/js/conta.js"></script>
-
 </body>
 </html>
 

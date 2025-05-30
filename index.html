@@ -6,14 +6,9 @@
   <title>MultiPower</title>
   <link rel="stylesheet" href="assets/css/index.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   <style>
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-    .custom-marker {
-      box-sizing: content-box;
-    }
+    /* Remove old map style, handled in CSS file now */
   </style>
 </head>
 <body>
@@ -29,281 +24,26 @@
         <img src="assets/images/wallet.png" style="filter: invert(1);" />
         <div class="nav1">WALLET</div>
       </a>
-    </div>
-    <div class="navigation">
+    </div>    <div class="navigation">
       <a class="button" href="conta.html">
-        <img src="assets/images/conta.jpg" />
+        <img src="assets/images/conta.png" style="filter: invert(1);"/>
         <div class="nav1">CONTA</div>
       </a>
     </div>
     <div class="navigation">
       <a class="button" href="login.html">
-        <img src="assets/images/logout.png" />
+        <img src="assets/images/logout.png" style="filter: invert(1);" />
         <div class="nav1">LOGOUT</div>
       </a>
     </div>
   </div>
-
-  <div class="container">
-    <div id="map"></div>
+  <div class="main-content">
+    <div class="map-card">
+      <div id="map"></div>
+    </div>
   </div>
-
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const map = L.map('map').setView([38.736946, -9.142685], 12); // Lisboa
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    let markers = [];
-    let reservas = {}; // Objeto para guardar reservas { id: { titulo, data, hora } }
-
-    function raioPorZoom(zoom) {
-      if (zoom >= 15) return 3;
-      if (zoom >= 12) return 10;
-      if (zoom >= 8) return 30;
-      return 50;
-    }
-
-    function getMarkerColor(available, total, reservado) {
-      if (reservado) return 'green'; // Estação reservada fica verde com contorno especial depois no marker
-      if (available === 0) return 'red';
-      if (available / total < 0.31) return 'orange';
-      return 'green';
-    }
-
-    // Cria marcador colorido com destaque para reservados (contorno estrela)
-    function createColoredMarker(lat, lon, color, popupContent, reservado) {
-      let htmlIcon;
-      if (reservado) {
-        // Verde com contorno estrela
-        htmlIcon = `
-          <div style="position: relative; width: 24px; height: 24px;">
-            <i style="
-              background-color:${color};
-              border-radius:50%;
-              display:block;
-              width:20px;
-              height:20px;
-              border:2px solid white;
-              box-shadow: 0 0 8px ${color};
-              position: absolute;
-              top: 2px;
-              left: 2px;
-              z-index: 1;
-            "></i>
-            <div style="
-              position: absolute;
-              top: -8px;
-              left: 4px;
-              width: 16px;
-              height: 16px;
-              background: gold;
-              clip-path: polygon(
-                50% 0%, 61% 35%, 98% 35%, 68% 57%, 
-                79% 91%, 50% 70%, 21% 91%, 32% 57%, 
-                2% 35%, 39% 35%
-              );
-              box-shadow: 0 0 5px gold;
-              z-index: 2;
-            "></div>
-          </div>
-        `;
-      } else {
-        htmlIcon = `<i style="
-          background-color:${color};
-          border-radius:50%;
-          display:block;
-          width:20px;
-          height:20px;
-          border:2px solid white;
-          box-shadow: 0 0 5px ${color};
-        "></i>`;
-      }
-
-      const icon = L.divIcon({
-        className: 'custom-marker',
-        html: htmlIcon,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-
-      return L.marker([lat, lon], { icon: icon }).bindPopup(popupContent);
-    }
-
-    // Cria popup com formulário para data e hora
-    function criarPopupComReserva(titulo, endereco, available, total, id) {
-      const podeReservar = available > 0 && !(id in reservas);
-      const jaReservado = id in reservas;
-
-      return `
-        <strong>${titulo}</strong><br>
-        ${endereco}<br>
-        Disponíveis: ${available} de ${total}<br><br>
-
-        ${jaReservado ? `
-          <div style="margin-bottom:10px; font-weight:bold; color:green;">
-            Reservado para: ${reservas[id].data} às ${reservas[id].hora}
-          </div>
-          <button
-            style="
-              background-color: #dc3545;
-              color: white;
-              border: none;
-              padding: 8px 12px;
-              border-radius: 5px;
-              cursor: pointer;
-              width: 100%;
-            "
-            onclick="cancelarReserva('${id}')"
-          >
-            Cancelar Reserva
-          </button>
-        ` : `
-          <button
-            style="
-              background-color: ${podeReservar ? '#28a745' : '#6c757d'};
-              color: white;
-              border: none;
-              padding: 8px 12px;
-              border-radius: 5px;
-              cursor: ${podeReservar ? 'pointer' : 'not-allowed'};
-              margin-bottom: 10px;
-              width: 100%;
-            "
-            ${podeReservar ? '' : 'disabled'}
-            onclick="mostrarFormularioReserva('${id}')"
-          >
-            Reservar
-          </button>
-          <div id="formulario-reserva-${id}" style="display:none; margin-top:10px;">
-            <label>Data: <input type="date" id="data-${id}" required></label><br><br>
-            <label>Hora: <input type="time" id="hora-${id}" required></label><br><br>
-            <button
-              onclick="confirmarReserva('${id}', '${titulo}')"
-              style="
-                background-color:#007bff;
-                color:#fff;
-                border:none;
-                padding:8px 12px;
-                border-radius:5px;
-                cursor:pointer;
-                width: 100%;
-              "
-            >
-              Confirmar
-            </button>
-          </div>
-        `}
-      `;
-    }
-
-    function mostrarFormularioReserva(id) {
-      const form = document.getElementById(`formulario-reserva-${id}`);
-      if (form.style.display === 'none') {
-        form.style.display = 'block';
-      } else {
-        form.style.display = 'none';
-      }
-    }
-
-    function confirmarReserva(id, titulo) {
-      const data = document.getElementById(`data-${id}`).value;
-      const hora = document.getElementById(`hora-${id}`).value;
-      if (!data || !hora) {
-        alert('Por favor, escolha data e hora.');
-        return;
-      }
-
-      reservas[id] = { titulo, data, hora };
-      alert(`Reserva confirmada para "${titulo}" no dia ${data} às ${hora}.`);
-      atualizarMarcadores();
-    }
-
-    function cancelarReserva(id) {
-      if (confirm('Tem certeza que deseja cancelar a reserva?')) {
-        delete reservas[id];
-        atualizarMarcadores();
-      }
-    }
-
-    function atualizarMarcadores() {
-      markers.forEach(marker => map.removeLayer(marker));
-      markers = [];
-      carregarEstacoes(true); // true = atualizar sem limpar reservas
-    }
-
-    function carregarEstacoes(manterReservas = false) {
-      const centro = map.getCenter();
-      const lat = centro.lat;
-      const lon = centro.lng;
-      const zoom = map.getZoom();
-      const distancia = raioPorZoom(zoom);
-
-      // Se não for para manter reservas, limpa os marcadores para evitar duplicação
-      if (!manterReservas) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-      }
-
-      fetch(`https://api.openchargemap.io/v3/poi/?output=json&countrycode=PT&latitude=${lat}&longitude=${lon}&maxresults=50&distance=${distancia}&distanceunit=KM&compact=true&verbose=false&key=1b6229d7-8a8d-4e66-9d0f-2e101e00f789`)
-        .then(response => response.json())
-        .then(data => {
-          // Primeiro adiciona as estações reservadas (independentemente da localização)
-          Object.entries(reservas).forEach(([id, reserva]) => {
-            // Procurar na resposta se está (para dados atualizados)
-            const pontoReservado = data.find(p => (p.ID == id));
-            // Se não estiver, vamos usar dados guardados
-            let latR, lonR, tituloR, enderecoR, availableR, totalR;
-
-            if (pontoReservado) {
-              const addr = pontoReservado.AddressInfo;
-              latR = addr.Latitude;
-              lonR = addr.Longitude;
-              tituloR = addr.Title;
-              enderecoR = addr.AddressLine1;
-              availableR = pontoReservado.NumberOfPointsAvailable ?? pontoReservado.NumberOfPoints ?? 1;
-              totalR = pontoReservado.NumberOfPoints ?? 1;
-            } else {
-              // Caso não esteja nos resultados atuais (fora do raio), ignorar por simplicidade
-              return;
-            }
-
-            const popupContent = criarPopupComReserva(tituloR, enderecoR, availableR, totalR, id);
-            const marker = createColoredMarker(latR, lonR, 'green', popupContent, true);
-            marker.addTo(map);
-            markers.push(marker);
-          });
-
-          // Agora adiciona as estações do fetch, exceto as já reservadas para evitar duplicados
-          data.forEach((ponto, index) => {
-            const id = ponto.ID || `station-${index}`;
-            if (reservas[id]) return; // pula as já reservadas
-
-            const { AddressInfo, NumberOfPoints, NumberOfPointsAvailable } = ponto;
-            const lat = AddressInfo.Latitude;
-            const lon = AddressInfo.Longitude;
-            const titulo = AddressInfo.Title;
-            const endereco = AddressInfo.AddressLine1;
-
-            const available = NumberOfPointsAvailable ?? NumberOfPoints ?? 0;
-            const total = NumberOfPoints ?? 1;
-
-            const cor = getMarkerColor(available, total, false);
-            const popupContent = criarPopupComReserva(titulo, endereco, available, total, id);
-            const marker = createColoredMarker(lat, lon, cor, popupContent, false);
-            marker.addTo(map);
-            markers.push(marker);
-          });
-        })
-        .catch(error => {
-          console.error('Erro ao carregar estações:', error);
-        });
-    }
-
-    carregarEstacoes();
-    map.on('moveend', () => carregarEstacoes(false));
-  </script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <script src="assets/js/index.js"></script>
 </body>
 </html>
