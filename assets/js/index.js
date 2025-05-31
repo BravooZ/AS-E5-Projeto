@@ -128,6 +128,21 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
       >
         Reservar
       </button>
+      <button
+        style="
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-bottom: 10px;
+          width: 100%;
+        "
+        onclick="iniciarAgora('${id}', '${titulo}')"
+      >
+        Iniciar Agora
+      </button>
       <div id="formulario-reserva-${id}" style="display:none; margin-top:10px;">
         <label>Data: <input type="date" id="data-${id}" required></label><br><br>
         <label>Hora: <input type="time" id="hora-${id}" required></label><br><br>
@@ -168,13 +183,53 @@ function confirmarReserva(id, titulo) {
   }
 
   reservas[id] = { titulo, data, hora };
+
+  const reservation = {
+    id,
+    name: titulo,
+    date: data,
+    time: hora,
+    status: 'reservado'
+  };
+
+  let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+  reservations.push(reservation);
+  localStorage.setItem('reservations', JSON.stringify(reservations));
+
   alert(`Reserva confirmada para "${titulo}" no dia ${data} às ${hora}.`);
+  atualizarMarcadores();
+}
+
+function iniciarAgora(id, titulo) {
+  const data = new Date().toLocaleDateString();
+  const hora = new Date().toLocaleTimeString();
+
+  reservas[id] = { titulo, data, hora };
+
+  const reservation = {
+    id,
+    name: titulo,
+    date: data,
+    time: hora,
+    status: 'iniciado'
+  };
+
+  let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+  reservations.push(reservation);
+  localStorage.setItem('reservations', JSON.stringify(reservations));
+
+  alert(`Reserva iniciada para "${titulo}" agora.`);
   atualizarMarcadores();
 }
 
 function cancelarReserva(id) {
   if (confirm('Tem certeza que deseja cancelar a reserva?')) {
     delete reservas[id];
+
+    let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+    reservations = reservations.filter(reservation => reservation.id !== id);
+    localStorage.setItem('reservations', JSON.stringify(reservations));
+
     atualizarMarcadores();
   }
 }
