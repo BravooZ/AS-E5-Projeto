@@ -9,6 +9,44 @@ body {
     min-height: 100vh;
 }
 
+.register-form-columns {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.register-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 220px;
+    flex: 1 1 220px;
+}
+
+.register-row {
+    display: flex;
+    gap: 12px;
+}
+
+.register-row input {
+    flex: 1;
+}
+
+@media (max-width: 900px) {
+    .register-form-columns {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .register-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
 /* --- NAVBAR --- */
 .navbar {
     position: fixed;
@@ -143,12 +181,16 @@ body {
     padding: 24px 24px 16px 24px;
     color: #fff;
     min-width: 320px;
-    max-width: 400px;
+    max-width: 800px;
     text-align: center;
     margin-bottom: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.register-card form {
+    width: 100%;
 }
 
 .register-card .logo {
