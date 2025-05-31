@@ -1,47 +1,82 @@
-// Monthly and yearly data for charts
-const monthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const monthlyData = [320, 290, 310, 280, 260, 250, 240, 245, 255, 270, 300, 315];
-
-const yearlyLabels = ['2021', '2022', '2023', '2024', '2025'];
-const yearlyData = [3200, 3400, 3100, 3500, 3700];
-
-// Monthly chart
-new Chart(document.getElementById('monthlyChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: monthlyLabels,
-        datasets: [{
-            label: 'Consumption (kWh)',
-            data: monthlyData,
-            borderColor: '#4bc0c0',
-            backgroundColor: 'rgba(75,192,192,0.2)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#4bc0c0'
-        }]
-    },
-    options: {
-        responsive: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+document.addEventListener('DOMContentLoaded', async function() {
+    const email = localStorage.getItem('email');
+    if (!email) {
+        window.location.href = 'login.html';
+        return;
     }
-});
 
-// Yearly chart
-new Chart(document.getElementById('yearlyChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-        labels: yearlyLabels,
-        datasets: [{
-            label: 'Consumption (kWh)',
-            data: yearlyData,
-            backgroundColor: '#ffb74d'
-        }]
-    },
-    options: {
-        responsive: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+    try {
+        const response = await fetch(`http://localhost:3000/api/wallet/${email}`);
+        if (response.ok) {
+            const data = await response.json();
+            // Atualiza saldo
+            document.querySelector('.wallet-balance').textContent = `${parseFloat(data.saldo).toFixed(2)}€`;
+
+            // Labels para os meses
+            const monthlyLabels = [
+                'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+            ];
+
+            // Atualiza gráfico mensal (Consumo)
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Consumo Mensal (kWh)',
+                        data: data.monthly_history,
+                        backgroundColor: '#4bc0c0'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Gera valores de variação de preços (€/kWh) realistas para cada mês (ex: 0.13€ a 0.25€)
+            const priceHistory = Array.from({length: 12}, () => (Math.random() * 0.12 + 0.13).toFixed(3));
+
+            // Atualiza gráfico de variação de preços
+            const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+            new Chart(yearlyCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Variação de Preço (€/kWh)',
+                        data: priceHistory,
+                        backgroundColor: 'rgba(255,183,77,0.2)',
+                        borderColor: '#ffb74d',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#ffb74d'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0.10,
+                            max: 0.30,
+                            ticks: {
+                                callback: function(value) { return value + '€'; }
+                            }
+                        }
+                    }
+                }
+            });
+
+        } else {
+            document.querySelector('.wallet-balance').textContent = 'Erro ao carregar saldo';
+        }
+    } catch (err) {
+        document.querySelector('.wallet-balance').textContent = 'Erro de ligação';
     }
 });

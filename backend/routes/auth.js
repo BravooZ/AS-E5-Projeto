@@ -40,11 +40,42 @@ router.post('/register', (req, res) => {
                 }
                 return res.status(500).json({ error: 'Erro no servidor' });
             }
-            res.status(201).json({ id: this.lastID, email });
+            // Cria carteira para o novo utilizador
+            const userId = this.lastID;
+            const saldo = (Math.random() * 200).toFixed(2);
+            const monthly_history = JSON.stringify(Array.from({ length: 12 }, () => Math.floor(Math.random() * 81) + 20));
+            db.run(
+                `INSERT INTO wallets (user_id, saldo, monthly_history) VALUES (?, ?, ?)`,
+                [userId, saldo, monthly_history],
+                function (err2) {
+                    if (err2) {
+                        return res.status(500).json({ error: 'Erro ao criar carteira' });
+                    }
+                    res.status(201).json({ id: userId, email });
+                }
+            );
         }
     );
+    // console.log(req.body); // (opcional para debug)
+});
 
-    console.log(req.body);
+router.get('/wallet/:email', (req, res) => {
+    const email = req.params.email;
+    db.get(
+        `SELECT w.saldo, w.monthly_history 
+         FROM wallets w
+         JOIN users u ON w.user_id = u.id
+         WHERE u.email = ?`,
+        [email],
+        (err, wallet) => {
+            if (err) return res.status(500).json({ error: 'Erro no servidor' });
+            if (!wallet) return res.status(404).json({ error: 'Carteira não encontrada' });
+            res.json({
+                saldo: wallet.saldo,
+                monthly_history: JSON.parse(wallet.monthly_history)
+            });
+        }
+    );
 });
 
 module.exports = router;
