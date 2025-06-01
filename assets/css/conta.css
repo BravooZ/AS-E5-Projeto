@@ -111,10 +111,11 @@ body {
     gap: 32px;
 }
 
-.profile-card, .profile-form-card {
+.profile-card,
+.profile-form-card {
     background: #232323;
     border-radius: 18px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
     padding: 24px 24px 16px 24px;
     color: #fff;
     min-width: 320px;
@@ -125,9 +126,6 @@ body {
     flex-direction: column;
     align-items: center;
 }
-.profile-form-card {
-    margin-top: 0;
-}
 
 .profile-image {
     width: 80px;
@@ -137,23 +135,72 @@ body {
     margin-bottom: 16px;
     border: 3px solid #4bc0c0;
 }
+
 .profile-name {
     font-size: 1.3em;
     font-weight: bold;
     margin-bottom: 4px;
+    color: #4bc0c0;
 }
+
 .profile-email {
     font-size: 1em;
     color: #aaa;
     margin-bottom: 18px;
 }
+
+.profile-extra {
+    width: 100%;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.profile-extra div {
+    font-size: 1em;
+    color: #fff;
+    background: linear-gradient(90deg, #0e0e0e 80%, #4bc0c0 100%);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(75, 192, 192, 0.07);
+    padding: 12px 18px;
+    width: 90%;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s, box-shadow 0.2s;
+    border: none;
+    position: relative;
+    margin: 0 auto;
+}
+
+.profile-extra div b {
+    color: #4bc0c0;
+    margin-right: 8px;
+    font-weight: 600;
+    min-width: 90px;
+    display: inline-block;
+}
+
+.profile-extra div span {
+    color: #fff;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.profile-extra div:hover {
+    background: linear-gradient(90deg, #0e0e0e 60%, #4bc0c0 100%);
+    box-shadow: 0 4px 16px rgba(75, 192, 192, 0.13);
+}
+
 .profile-buttons {
     display: flex;
-    width: 40vw;
+    width: 100%;
     gap: 16px;
     margin-bottom: 18px;
     justify-content: center;
 }
+
 .profile-btn {
     background: #4bc0c0;
     color: #fff;
@@ -165,71 +212,46 @@ body {
     transition: background 0.2s;
     font-family: 'Oswald', sans-serif;
 }
-.profile-btn:hover, .profile-btn:focus {
+
+.profile-btn:hover,
+.profile-btn:focus {
     background: #369b9b;
 }
 
-.profile-form-card h1 {
-    color: #4bc0c0;
-    font-size: 1.1em;
-    margin-bottom: 18px;
-}
-.profile-form-card input, .profile-form-card select {
-    margin-bottom: 12px;
-    border: none;
-    border-bottom: 1px solid #3f3f3f;
-    outline: none;
-    padding: 8px;
-    background: transparent;
-    color: #fff;
-    font-size: 1em;
-    font-family: 'Oswald', sans-serif;
-    border-radius: 0;
-}
-.profile-form-card input[type="date"], .profile-form-card input[type="time"] {
-    color-scheme: dark;
-}
-.profile-form-card button {
-    background: #4bc0c0;
-    align-self: center;
-    color: #fff;
-    border: none;
-    width: 90%;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-family: 'Oswald', sans-serif;
-    margin-top: 10px;
-    gap : 10px;
-}
-.profile-form-card button:hover, .profile-form-card button:focus {
-    background: #369b9b;
-}
-
-.forms {
-    width: 90%;
-}
-
-/* --- Isto força estilo mobile para coisas necessarias nest pagina --- */
+/* Responsivo para mobile */
 @media (max-width: 700px) {
-     .profile-card, .profile-form-card {
+
+    .profile-card,
+    .profile-form-card {
         padding: 24px 20px;
         width: 80vw;
         margin: 0 10px 16px 10px;
     }
+
     .profile-image {
         width: 60px;
         height: 60px;
     }
+
     .profile-buttons {
         flex-direction: column;
         gap: 12px;
         width: 100%;
     }
+
     .profile-btn {
         width: 100%;
         padding: 12px 18px;
+    }
+
+    .profile-extra div {
+        font-size: 0.97em;
+        padding: 10px 10px;
+        width: 90%;      /* Garante que ocupa toda a largura do cartão */
+        margin: 0 auto;   /* Mantém centrado */
+        justify-content: center; /* Centraliza conteúdo se necessário */
+    }
+    .profile-extra div b {
+        min-width: 70px;
     }
 }

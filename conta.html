@@ -35,14 +35,20 @@
   </div>
     <div class="main-content">
         <div class="profile-card">
-            <img src="assets/images/elon.png" alt="Account Image" class="profile-image">
-            <div class="profile-name">Elon Musk</div>
-            <div class="profile-email">elon@tesla.com</div>
-            <div class="profile-buttons">
-                <button class="profile-btn" onclick="showCars()">Adicionar Carros</button>
-                <button class="profile-btn" onclick="toggleProfileForm()">Alterar Dados</button>
-                <button id="show-reservations-button" class="profile-btn">Mostrar Carregamentos</button>
-            </div>
+          <img src="assets/images/conta.png" alt="Account Image" class="profile-image">
+          <div class="profile-name">Nome do Utilizador</div>
+          <div class="profile-email">email@exemplo.com</div>
+          <div class="profile-extra">
+            <div><b>Telefone:</b> <span class="profile-phone"></span></div>
+            <div><b>Morada:</b> <span class="profile-address"></span></div>
+            <div><b>Cidade:</b> <span class="profile-city"></span></div>
+            <div><b>País:</b> <span class="profile-country"></span></div>
+          </div>
+          <div class="profile-buttons">
+            <button class="profile-btn" onclick="showCars()">Adicionar Carros</button>
+            <button class="profile-btn" onclick="toggleProfileForm()">Alterar Dados</button>
+            <button id="show-reservations-button" class="profile-btn">Mostrar Carregamentos</button>
+          </div>
         </div>
         <div class="profile-form-card" id="cars-form-card" style="display:none;">
             <h1>Adicionar Carros</h1>

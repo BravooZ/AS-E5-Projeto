@@ -1,5 +1,5 @@
 // Map initialization
-const map = L.map('map').setView([38.736946, -9.142685], 12); // Lisboa
+var map = L.map('map').setView([40.6405, -8.6538], 14); // Aveiro
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'

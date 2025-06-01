@@ -52,3 +52,26 @@ function setupReservationsButton() {
 }
 
 document.addEventListener('DOMContentLoaded', setupReservationsButton);
+
+document.addEventListener('DOMContentLoaded', async function () {
+  const email = localStorage.getItem('email');
+  if (!email) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/user/${email}`);
+    if (response.ok) {
+      const user = await response.json();
+      document.querySelector('.profile-name').textContent = `${user.nome} ${user.apelido}`;
+      document.querySelector('.profile-email').textContent = user.email;
+      document.querySelector('.profile-phone').textContent = user.telefone;
+      document.querySelector('.profile-address').textContent = user.morada;
+      document.querySelector('.profile-city').textContent = user.cidade;
+      document.querySelector('.profile-country').textContent = user.pais;
+    }
+  } catch (err) {
+    document.querySelector('.profile-name').textContent = 'Erro ao carregar utilizador';
+  }
+});

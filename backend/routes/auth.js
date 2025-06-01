@@ -78,4 +78,18 @@ router.get('/wallet/:email', (req, res) => {
     );
 });
 
+router.get('/user/:email', (req, res) => {
+    const email = req.params.email;
+    db.get(
+        `SELECT nome, apelido, data_nascimento, genero, cartao_cidadao, email, telefone, morada, pais, cidade, codigo_postal 
+         FROM users WHERE email = ?`,
+        [email],
+        (err, user) => {
+            if (err) return res.status(500).json({ error: 'Erro no servidor' });
+            if (!user) return res.status(404).json({ error: 'Utilizador não encontrado' });
+            res.json(user);
+        }
+    );
+});
+
 module.exports = router;
