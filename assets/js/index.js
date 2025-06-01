@@ -179,9 +179,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
         Terminar carregamento
       </button>
     `;
-  }
-
-  if (jaReservado && status === 'reservado') {
+  } else if (jaReservado && status === 'reservado') {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
@@ -203,24 +201,8 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
       >
         Cancelar reserva
       </button>
-      <button
-        type="button"
-        style="
-          background-color: #007bff;
-          color: white;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 5px;
-          cursor: pointer;
-          width: 100%;
-          margin-top: 8px;
-        "
-        onclick="iniciarAgora('${id}', '${titulo}')"
-      >
-        Iniciar carregamento
-      </button>
     `;
-  }
+  } else {
 
   // Caso normal (livre)
   const podeReservar = available > 0 && carroSelecionado && saldo >= 1;
@@ -284,6 +266,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
       </button>
     </div>
   `;
+  }
 }
 
 function createUserMarker(lat, lon, color, popupContent, id) {
@@ -379,7 +362,13 @@ async function confirmarReserva(id, titulo) {
 }
 
 async function iniciarAgora(id, titulo) {
-  // Não desconta saldo aqui!
+  const saldoDescontado = 5; // reduzir dinheiro wallet
+  const saldoOk = await descontarSaldo(saldoDescontado, true);
+  if (!saldoOk) {
+    alert('Erro ao descontar saldo. Verifique seu saldo e tente novamente.');
+    return;
+  }
+
   const data = new Date().toISOString().split('T')[0];
   const hora = new Date().toLocaleTimeString().slice(0,5);
 
@@ -410,13 +399,12 @@ async function iniciarAgora(id, titulo) {
   const popupContent = criarPopupComReserva(titulo, endereco, 0, 1, id);
   createUserMarker(lat, lon, color, popupContent, id);
 
-  alert(`Carregamento iniciado para "${titulo}".`);
-
   if (marker) {
     map.setView(marker.getLatLng(), 17, { animate: true });
     marker.openPopup();
   }
 
+  alert(`Carregamento iniciado para "${titulo}".`);
   atualizarMarcadores();
 }
 
