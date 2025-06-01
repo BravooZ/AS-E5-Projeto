@@ -45,20 +45,33 @@
             <div><b>País:</b> <span class="profile-country"></span></div>
           </div>
           <div class="profile-buttons">
-            <button class="profile-btn" onclick="showCars()">Adicionar Carros</button>
+            <button class="profile-btn" onclick="toggleGarage()">Garagem</button>
             <button class="profile-btn" onclick="toggleProfileForm()">Alterar Dados</button>
             <button id="show-reservations-button" class="profile-btn">Mostrar Carregamentos</button>
           </div>
         </div>
-        <div class="profile-form-card" id="cars-form-card" style="display:none;">
-            <h1>Adicionar Carros</h1>
-            <form>
-                <input style="width: 90%;" type="text" placeholder="Marca">
-                <input style="width: 90%;" type="text" placeholder="Modelo">
-                <input style="width: 90%;" type="text" placeholder="Ano">
-                <input style="width: 90%;" type="text" placeholder="Cor">
-                <button style="width: 90%;" type="submit">Adicionar Carro</button>
-            </form>
+        <div class="profile-form-card" id="garage-card" style="display:none;">
+          <h1>Garagem</h1>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+            <button id="add-car-btn" title="Adicionar Carro" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#4bc0c0;border:none;border-radius:8px;cursor:pointer;">
+              <img src="assets/images/plus.png" alt="Adicionar" style="width:22px;height:22px;filter:invert(1);" />
+            </button>
+            <button id="remove-car-btn" title="Remover Carro" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#e74c3c;border:none;border-radius:8px;cursor:pointer;">
+              <img src="assets/images/remove.png" alt="Remover" style="width:22px;height:22px;filter:invert(1);" />
+            </button>
+          </div>
+          <div id="garage-list"></div>
+          <!-- Formulário para adicionar carro -->
+          <form id="add-car-form" style="display:none;margin-top:18px;">
+            <input type="text" name="marca" placeholder="Marca" required>
+            <input type="text" name="modelo" placeholder="Modelo" required>
+            <input type="text" name="ano" placeholder="Ano" required>
+            <input type="text" name="matricula" placeholder="Matrícula" required>
+            <input type="text" name="cor" placeholder="Cor" required>
+            <button class="profile-btn" type="submit" style="margin-top:10px;">Adicionar Carro</button>
+          </form>
+          <!-- Lista de carros para remover -->
+          <div id="remove-car-list" style="display:none;margin-top:18px;"></div>
         </div>
         <div class="profile-form-card" id="profile-form-card" style="display:none;">
           <h1>Alterar Dados do Perfil</h1>

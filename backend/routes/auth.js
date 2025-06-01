@@ -156,4 +156,44 @@ router.get('/carregamentos/:email', (req, res) => {
     });
 });
 
+// Adicionar carro
+router.post('/carros/add', (req, res) => {
+    const { email, marca, modelo, ano, matricula, cor } = req.body;
+    db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
+        if (err || !user) return res.status(400).json({ error: 'Utilizador não encontrado' });
+        db.run(
+            `INSERT INTO carros (user_id, marca, modelo, ano, matricula, cor) VALUES (?, ?, ?, ?, ?, ?)`,
+            [user.id, marca, modelo, ano, matricula, cor],
+            function (err2) {
+                if (err2) return res.status(500).json({ error: 'Erro ao adicionar carro' });
+                res.json({ success: true });
+            }
+        );
+    });
+});
+
+// Listar carros do utilizador
+router.get('/carros/:email', (req, res) => {
+    const email = req.params.email;
+    db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
+        if (err || !user) return res.status(400).json({ error: 'Utilizador não encontrado' });
+        db.all('SELECT id, marca, modelo, ano, matricula, cor FROM carros WHERE user_id = ?', [user.id], (err2, rows) => {
+            if (err2) return res.status(500).json({ error: 'Erro ao obter carros' });
+            res.json(rows);
+        });
+    });
+});
+
+// Remover carro
+router.delete('/carros/remove', (req, res) => {
+    const { email, carro_id } = req.body;
+    db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
+        if (err || !user) return res.status(400).json({ error: 'Utilizador não encontrado' });
+        db.run('DELETE FROM carros WHERE id = ? AND user_id = ?', [carro_id, user.id], function (err2) {
+            if (err2) return res.status(500).json({ error: 'Erro ao remover carro' });
+            res.json({ success: true });
+        });
+    });
+});
+
 module.exports = router;

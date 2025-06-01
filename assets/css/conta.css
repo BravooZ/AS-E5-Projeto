@@ -161,7 +161,7 @@ body {
 .profile-extra div {
     font-size: 1em;
     color: #fff;
-    background: linear-gradient(90deg, #0e0e0e 80%, #4bc0c0 100%);
+    background: linear-gradient(90deg, #1b1b1b 80%, #4bc0c0 100%);
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(75, 192, 192, 0.07);
     padding: 12px 18px;
@@ -189,7 +189,7 @@ body {
 }
 
 .profile-extra div:hover {
-    background: linear-gradient(90deg, #0e0e0e 60%, #4bc0c0 100%);
+    background: linear-gradient(90deg, #1b1b1b 60%, #4bc0c0 100%);
     box-shadow: 0 4px 16px rgba(75, 192, 192, 0.13);
 }
 
@@ -337,6 +337,115 @@ body {
     to { opacity: 1; transform: translateY(0);}
 }
 
+
+#garage-card h1 {
+    color: #4bc0c0;
+    font-size: 1.2em;
+    margin-bottom: 18px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+#garage-list, #remove-car-list {
+    width: 100%;
+}
+.carro-item {
+    background: #1b1b1b;
+    border-radius: 10px;
+    margin: 10px 0;
+    padding: 12px 18px;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(75,192,192,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    border-left: 5px solid #4bc0c0;
+    transition: box-shadow 0.2s;
+}
+.carro-remove-btn {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: absolute;
+    left: -55px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.carro-remove-btn img {
+    width: 18px;
+    height: 18px;
+    filter: invert(1);
+}
+.carro-remove-btn:hover {
+    background: #c0392b;
+}
+
+
+#add-car-form {
+    background: #232c33;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(75, 192, 192, 0.13);
+    padding: 20px 15px 15px 15px;
+    margin: 18px 0 0 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    animation: fadeIn 0.3s;
+    box-sizing: border-box;
+}
+
+#add-car-form input[type="text"] {
+    width: 90%;
+    margin: 0 auto 16px auto;
+    border: none;
+    border-bottom: 1.5px solid #4bc0c0;
+    outline: none;
+    padding: 12px 10px;
+    background: #232323;
+    color: #fff;
+    font-size: 1em;
+    font-family: 'Oswald', sans-serif;
+    border-radius: 8px 8px 0 0;
+    transition: border-color 0.2s, background 0.2s;
+    box-shadow: 0 1px 4px rgba(75, 192, 192, 0.07);
+    display: block;
+}
+
+#add-car-form input[type="text"]:focus {
+    border-bottom: 2px solid #369b9b;
+    background: #20292b;
+}
+
+#add-car-form button[type="submit"] {
+    margin-top: 10px;
+    background: #4bc0c0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Oswald', sans-serif;
+    width: 90%;
+    align-self: center;
+}
+
+#add-car-form button[type="submit"]:hover {
+    background: #369b9b;
+}
+
+
 /* Responsivo para mobile */
 @media (max-width: 700px) {
 
@@ -372,5 +481,17 @@ body {
     }
     .profile-extra div b {
         min-width: 70px;
+    }
+
+    #add-car-form {
+        padding: 12px 10px 10px 10px;
+        margin: 12px 0 0 0;
+        border-radius: 12px;
+    }
+    #add-car-form input[type="text"],
+    #add-car-form button[type="submit"] {
+        width: 96%;
+        font-size: 0.97em;
+        padding: 10px 8px;
     }
 }

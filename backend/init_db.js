@@ -62,4 +62,17 @@ db.serialize(() => {
       db.close();
     }
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS carros (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      marca TEXT NOT NULL,
+      modelo TEXT NOT NULL,
+      ano TEXT NOT NULL,
+      matricula TEXT NOT NULL,
+      cor TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+  `);
 });
