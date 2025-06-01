@@ -153,121 +153,112 @@ function createColoredMarker(lat, lon, color, popupContent, reservado) {
 
 // Create popup with reservation form for date and time
 function criarPopupComReserva(titulo, endereco, available, total, id) {
+  const isAdmin = localStorage.getItem('is_admin') === '1';
   const jaReservado = id in reservas;
   const status = jaReservado ? reservas[id].status : null;
+
+  let adminBtn = '';
+  if (isAdmin) {
+    adminBtn = `<button type="button" style="background:#4bc0c0;color:#232c33;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;width:100%;margin-bottom:8px;font-weight:bold;" onclick="verReservasEstacao('${id}','${titulo.replace(/'/g, '\'')}')">Ver reservas/carregamentos</button>`;
+  }
 
   if (jaReservado && status === 'iniciado') {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
+      ${adminBtn}
       <div style="margin-bottom:10px; font-weight:bold; color:#007bff;">
         Carregamento iniciado em: ${reservas[id].data} às ${reservas[id].hora}
       </div>
       <button
         type="button"
-        style="
-          background-color: #dc3545;
-          color: white;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 5px;
-          cursor: pointer;
-          width: 100%;
-        "
+        style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; width: 100%;"
         onclick="cancelarReserva('${id}')"
-      >
-        Terminar carregamento
-      </button>
+      >Terminar carregamento</button>
     `;
   } else if (jaReservado && status === 'reservado') {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
+      ${adminBtn}
       <div style="margin-bottom:10px; font-weight:bold; color:orange;">
         Reservado para: ${reservas[id].data} às ${reservas[id].hora}
       </div>
       <button
         type="button"
-        style="
-          background-color: #dc3545;
-          color: white;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 5px;
-          cursor: pointer;
-          width: 100%;
-        "
+        style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; width: 100%;"
         onclick="cancelarReserva('${id}')"
-      >
-        Cancelar reserva
-      </button>
+      >Cancelar reserva</button>
     `;
   } else {
-
-  // Caso normal (livre)
-  const podeReservar = available > 0 && carroSelecionado && saldo >= 1;
-  const podeIniciar = available > 0 && carroSelecionado;
-  return `
-    <strong>${titulo}</strong><br>
-    ${endereco}<br>
-    Disponíveis: ${available} de ${total}<br><br>
-    <button
-      type="button"
-      style="
-        background-color: ${podeReservar ? 'orange' : '#6c757d'};
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: ${podeReservar ? 'pointer' : 'not-allowed'};
-        margin-bottom: 10px;
-        width: 100%;
-        box-shadow: ${podeReservar ? '0 0 8px orange' : 'none'};
-      "
-      ${podeReservar ? '' : 'disabled'}
-      onclick="mostrarFormularioReserva('${id}')"
-    >
-      Reservar
-    </button>
-    <button
-      type="button"
-      style="
-        background-color: ${podeIniciar ? '#007bff' : '#6c757d'};
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: ${podeIniciar ? 'pointer' : 'not-allowed'};
-        margin-bottom: 10px;
-        width: 100%;
-      "
-      ${podeIniciar ? '' : 'disabled'}
-      onclick="iniciarAgora('${id}', '${titulo}')"
-    >
-      Iniciar carregamento
-    </button>
-    <div id="formulario-reserva-${id}" style="display:none; margin-top:10px;">
-      <label>Data: <input type="date" id="data-${id}" required value="${new Date().toISOString().split('T')[0]}"></label><br><br>
-      <label>Hora: <input type="time" id="hora-${id}" required></label><br><br>
+    const podeReservar = available > 0 && carroSelecionado && saldo >= 1;
+    const podeIniciar = available > 0 && carroSelecionado;
+    return `
+      <strong>${titulo}</strong><br>
+      ${endereco}<br>
+      ${adminBtn}
+      Disponíveis: ${available} de ${total}<br><br>
       <button
         type="button"
-        onclick="confirmarReserva('${id}', '${titulo}')"
-        style="
-          background-color:#007bff;
-          color:#fff;
-          border:none;
-          padding:8px 12px;
-          border-radius:5px;
-          cursor:pointer;
-          width: 100%;
-        "
-      >
-        Confirmar
-      </button>
-    </div>
-  `;
+        style="background-color: ${podeReservar ? 'orange' : '#6c757d'}; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: ${podeReservar ? 'pointer' : 'not-allowed'}; margin-bottom: 10px; width: 100%; box-shadow: ${podeReservar ? '0 0 8px orange' : 'none'};"
+        ${podeReservar ? '' : 'disabled'}
+        onclick="mostrarFormularioReserva('${id}')"
+      >Reservar</button>
+      <button
+        type="button"
+        style="background-color: ${podeIniciar ? '#007bff' : '#6c757d'}; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: ${podeIniciar ? 'pointer' : 'not-allowed'}; margin-bottom: 10px; width: 100%;"
+        ${podeIniciar ? '' : 'disabled'}
+        onclick="iniciarAgora('${id}', '${titulo}')"
+      >Iniciar carregamento</button>
+      <div id="formulario-reserva-${id}" style="display:none; margin-top:10px;">
+        <label>Data: <input type="date" id="data-${id}" required value="${new Date().toISOString().split('T')[0]}"></label><br><br>
+        <label>Hora: <input type="time" id="hora-${id}" required></label><br><br>
+        <button type="button" onclick="confirmarReserva('${id}', '${titulo}')" style="background-color:#007bff;color:#fff;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;width: 100%;">Confirmar</button>
+      </div>
+    `;
   }
 }
+
+// Função global para admin ver reservas/carregamentos da estação
+window.verReservasEstacao = async function(estacao_id, titulo) {
+  let modal = document.getElementById('admin-modal-estacao');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'admin-modal-estacao';
+    modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `<div id='admin-modal-content' style='background:#232c33;color:#fff;padding:24px 18px 18px 18px;border-radius:10px;min-width:320px;max-width:95vw;max-height:80vh;overflow:auto;box-shadow:0 0 24px #000;position:relative;'>
+      <span id='admin-modal-close' style='position:absolute;top:8px;right:16px;cursor:pointer;font-size:1.5em;'>&times;</span>
+      <h3 style='margin-top:0;margin-bottom:12px;'>Reservas/Carregamentos<br><span style='font-size:0.7em;font-weight:normal;'>${titulo}</span></h3>
+      <div id='admin-modal-body'>A carregar...</div>
+    </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('admin-modal-close').onclick = () => modal.remove();
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  } else {
+    modal.style.display = 'flex';
+    document.getElementById('admin-modal-body').innerHTML = 'A carregar...';
+    document.querySelector('#admin-modal-content h3 span').textContent = titulo;
+  }
+  try {
+    const resp = await fetch(`http://localhost:3000/api/admin/estacao/${estacao_id}`);
+    const data = await resp.json();
+    if (!data || data.length === 0) {
+      document.getElementById('admin-modal-body').innerHTML = '<span style="color:#aaa;">Sem reservas/carregamentos nesta estação.</span>';
+      return;
+    }
+    let html = '<ul style="padding-left:16px;">';
+    data.forEach(r => {
+      html += `<li style='margin-bottom:10px;'><b>${r.status}</b> - ${r.data || ''} ${r.hora || ''}<br>
+        <span style='color:#4bc0c0;'>Carro:</span> ${r.carro.marca} ${r.carro.modelo} (${r.carro.ano}) [${r.carro.matricula}]<br>
+        <span style='color:#4bc0c0;'>Utilizador:</span> ${r.usuario.nome} ${r.usuario.apelido} (${r.usuario.email})
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('admin-modal-body').innerHTML = html;
+  } catch (e) {
+    document.getElementById('admin-modal-body').innerHTML = '<span style="color:#c00;">Erro ao carregar dados.</span>';
+  }
+};
 
 function createUserMarker(lat, lon, color, popupContent, id) {
   // Remove marker antigo do mesmo tipo se existir

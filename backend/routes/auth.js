@@ -238,4 +238,54 @@ router.get('/carro_estacao/:carro_id', (req, res) => {
   );
 });
 
+// Endpoint ADMIN: Listar reservas/carregamentos por estação
+router.get('/admin/estacoes', (req, res) => {
+  // Junta reservas/carregamentos, carros e usuários
+  db.all(`
+    SELECT ce.estacao_id, ce.status, ce.data, ce.hora, ce.lat, ce.lon, ce.endereco,
+           c.marca, c.modelo, c.ano, c.matricula, c.cor,
+           u.nome, u.apelido, u.email
+    FROM carro_estacao ce
+    JOIN carros c ON ce.carro_id = c.id
+    JOIN users u ON c.user_id = u.id
+    ORDER BY ce.estacao_id, ce.data DESC, ce.hora DESC
+  `, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Erro ao obter reservas/carregamentos' });
+    // Agrupa por estacao_id
+    const resultado = {};
+    rows.forEach(r => {
+      if (!resultado[r.estacao_id]) resultado[r.estacao_id] = [];
+      resultado[r.estacao_id].push({
+        status: r.status,
+        data: r.data,
+        hora: r.hora,
+        lat: r.lat,
+        lon: r.lon,
+        endereco: r.endereco,
+        carro: { marca: r.marca, modelo: r.modelo, ano: r.ano, matricula: r.matricula, cor: r.cor },
+        usuario: { nome: r.nome, apelido: r.apelido, email: r.email }
+      });
+    });
+    res.json(resultado);
+  });
+});
+
+// Endpoint ADMIN: Reservas/carregamentos de uma estação específica
+router.get('/admin/estacao/:estacao_id', (req, res) => {
+  const estacao_id = req.params.estacao_id;
+  db.all(`
+    SELECT ce.status, ce.data, ce.hora, ce.lat, ce.lon, ce.endereco,
+           c.marca, c.modelo, c.ano, c.matricula, c.cor,
+           u.nome, u.apelido, u.email
+    FROM carro_estacao ce
+    JOIN carros c ON ce.carro_id = c.id
+    JOIN users u ON c.user_id = u.id
+    WHERE ce.estacao_id = ?
+    ORDER BY ce.data DESC, ce.hora DESC
+  `, [estacao_id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Erro ao obter reservas/carregamentos' });
+    res.json(rows);
+  });
+});
+
 module.exports = router;

@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const user = await response.json();
                 localStorage.setItem('email', user.email);
                 localStorage.setItem('hasAccount', 'true');
+                localStorage.setItem('is_admin', user.is_admin ? '1' : '0');
                 window.location.href = 'index.html';
             } else {
                 const error = await response.json();
