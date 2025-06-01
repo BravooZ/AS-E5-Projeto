@@ -75,4 +75,20 @@ db.serialize(() => {
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS carro_estacao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      carro_id INTEGER NOT NULL,
+      estacao_id TEXT NOT NULL,
+      status TEXT NOT NULL, -- 'reservado' ou 'iniciado'
+      data TEXT,
+      hora TEXT,
+      cheguei INTEGER DEFAULT 0,
+      lat REAL,
+      lon REAL,
+      endereco TEXT,
+      UNIQUE(carro_id)
+    )
+  `);
 });

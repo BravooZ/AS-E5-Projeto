@@ -129,16 +129,18 @@ db.run(`
     )
 `);
 
-// Adicionar saldo e registar carregamento
+// Adicionar saldo e registar carregamento (apenas se for input do utilizador)
 router.post('/wallet/add', (req, res) => {
-    const { email, valor } = req.body;
+    const { email, valor, registar } = req.body;
     db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
         if (err || !user) return res.status(400).json({ error: 'Utilizador não encontrado' });
         db.run('UPDATE wallets SET saldo = saldo + ? WHERE user_id = ?', [valor, user.id], function (err2) {
             if (err2) return res.status(500).json({ error: 'Erro ao adicionar saldo' });
-            // Regista carregamento
-            const data_hora = new Date().toISOString();
-            db.run('INSERT INTO carregamentos (user_id, valor, data_hora) VALUES (?, ?, ?)', [user.id, valor, data_hora]);
+            // Só regista carregamento se registar=true
+            if (registar) {
+                const data_hora = new Date().toISOString();
+                db.run('INSERT INTO carregamentos (user_id, valor, data_hora) VALUES (?, ?, ?)', [user.id, valor, data_hora]);
+            }
             res.json({ success: true });
         });
     });
@@ -194,6 +196,46 @@ router.delete('/carros/remove', (req, res) => {
             res.json({ success: true });
         });
     });
+});
+
+// Associar estação ao carro
+router.post('/carro_estacao/add', (req, res) => {
+  const { carro_id, estacao_id, status, data, hora, lat, lon, endereco } = req.body;
+  // Só pode haver uma estação por carro
+  db.run(
+    `INSERT OR REPLACE INTO carro_estacao (carro_id, estacao_id, status, data, hora, lat, lon, endereco) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [carro_id, estacao_id, status, data, hora, lat, lon, endereco],
+    function (err) {
+      if (err) return res.status(500).json({ error: 'Erro ao associar estação' });
+      res.json({ success: true });
+    }
+  );
+});
+
+// Remover associação
+router.post('/carro_estacao/remove', (req, res) => {
+  const { carro_id, estacao_id } = req.body;
+  db.run(
+    `DELETE FROM carro_estacao WHERE carro_id = ? AND estacao_id = ?`,
+    [carro_id, estacao_id],
+    function (err) {
+      if (err) return res.status(500).json({ error: 'Erro ao remover associação' });
+      res.json({ success: true });
+    }
+  );
+});
+
+// Obter estação associada ao carro
+router.get('/carro_estacao/:carro_id', (req, res) => {
+  const carro_id = req.params.carro_id;
+  db.get(
+    `SELECT * FROM carro_estacao WHERE carro_id = ?`,
+    [carro_id],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: 'Erro ao obter associação' });
+      res.json(row);
+    }
+  );
 });
 
 module.exports = router;
