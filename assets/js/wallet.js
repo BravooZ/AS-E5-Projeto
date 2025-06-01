@@ -73,6 +73,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             });
 
+            const addBtn = document.getElementById('add-balance-btn');
+            if (addBtn) {
+                addBtn.onclick = async function () {
+                    let valor = prompt("Quanto saldo deseja adicionar? (€)");
+                    if (!valor) return;
+                    valor = parseFloat(valor.replace(',', '.'));
+                    if (isNaN(valor) || valor <= 0) {
+                        alert("Valor inválido.");
+                        return;
+                    }
+                    const email = localStorage.getItem('email');
+                    const resp = await fetch('http://localhost:3000/api/wallet/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, valor })
+                    });
+                    if (resp.ok) {
+                        alert("Saldo adicionado com sucesso!");
+                        location.reload();
+                    } else {
+                        alert("Erro ao adicionar saldo.");
+                    }
+                };
+            }
+
         } else {
             document.querySelector('.wallet-balance').textContent = 'Erro ao carregar saldo';
         }

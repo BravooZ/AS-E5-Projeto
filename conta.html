@@ -61,27 +61,27 @@
             </form>
         </div>
         <div class="profile-form-card" id="profile-form-card" style="display:none;">
-            <h1>Alterar Dados do Perfil</h1>
-            <form style="width: 100%;">
-                <input type="text" placeholder="Nome">
-                <input type="text" placeholder="Apelido">
-                <input style="width: 90%;" type="date" placeholder="Data Nascimento">
-                <select style="width: 95%;">
-                    <option style="color: black;" value="">Escolher Genero</option>
-                    <option style="color: black;" value="male">Masculino</option>
-                    <option style="color: black;" value="female">Feminino</option>
-                </select>
-                <input style="width: 90%;" type="text" placeholder="Numero Cartao cidadao">
-                <input style="width: 90%;" type="text" placeholder="Email">
-                <input style="width: 90%;" type="text" placeholder="Telefone">
-                <input style="width: 90%;" type="text" placeholder="Morada">
-                <input style="width: 90%;" type="text" placeholder="Cidade">
-                <input style="width: 90%;" type="text" placeholder="Codigo Postal">
-                <input style="width: 90%;" type="text" placeholder="País">
-                <button class="profile-form-card button" type="submit">Guardar Alterações</button>
-            </form>
+          <h1>Alterar Dados do Perfil</h1>
+          <form id="edit-profile-form" style="width: 100%;">
+              <input type="text" name="email" placeholder="Email">
+              <input type="text" name="telefone" placeholder="Telefone">
+              <input type="text" name="morada" placeholder="Morada">
+              <input type="text" name="cidade" placeholder="Cidade">
+              <input type="text" name="codigo_postal" placeholder="Código Postal">
+              <input type="text" name="pais" placeholder="País">
+              <button class="profile-btn" type="submit">Guardar Alterações</button>
+              <button class="profile-btn" type="button" id="cancel-edit-btn" style="background:#888;margin-top:10px;">Cancelar</button>
+          </form>
+          <button class="profile-btn" id="show-password-form-btn" type="button" style="margin-top:10px;">Alterar Password</button>
+          <form id="password-form" style="display:none; margin-top:10px;">
+              <input type="password" name="nova_password" placeholder="Nova Password">
+              <button class="profile-btn" type="submit">Guardar Password</button>
+          </form>
         </div>
-        <div id="reservations-container" class="profile-form-card" style="display: none;"></div>
+        <div id="reservations-container" class="profile-form-card" style="display: none;">
+          <h2 id="reservations-title" style="color:#4bc0c0; margin-bottom:18px; letter-spacing:1px;">Mostrar Carregamentos</h2>
+          <div id="reservations-list"></div>
+        </div>
     </div>
 </body>
 </html>
