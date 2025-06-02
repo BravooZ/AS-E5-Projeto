@@ -307,6 +307,91 @@ router.get('/admin/manutencao', (req, res) => {
     );
 });
 
+// === ENDPOINTS PARA ESTAÇÕES LOCAIS ===
+
+// Endpoint ADMIN: Adicionar estação local
+router.post('/admin/estacoes/add', (req, res) => {
+    const { nome_estacao, nome_rua, numero_lugares, latitude, longitude, admin_email } = req.body;
+
+    // Verificar se é admin
+    db.get('SELECT is_admin FROM users WHERE email = ?', [admin_email], (err, user) => {
+        if (err || !user || !user.is_admin) {
+            return res.status(403).json({ error: 'Acesso negado' });
+        }
+
+        // Validar campos obrigatórios
+        if (!nome_estacao || !nome_rua || !numero_lugares || !latitude || !longitude) {
+            return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+        }
+
+        // Gerar ID único para a estação local (prefixo 'LOCAL_')
+        const estacao_id = 'LOCAL_' + Date.now();
+        const data_criacao = new Date().toISOString();
+
+        db.run(
+            `INSERT INTO estacoes_locais (estacao_id, nome_estacao, nome_rua, numero_lugares, latitude, longitude, data_criacao, admin_email) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [estacao_id, nome_estacao, nome_rua, numero_lugares, latitude, longitude, data_criacao, admin_email],
+            function (err) {
+                if (err) return res.status(500).json({ error: 'Erro ao adicionar estação local' });
+                res.json({ success: true, estacao_id: estacao_id });
+            }
+        );
+    });
+});
+
+// Endpoint ADMIN: Listar estações locais
+router.get('/admin/estacoes', (req, res) => {
+    db.all(
+        `SELECT * FROM estacoes_locais ORDER BY data_criacao DESC`,
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Erro ao obter estações locais' });
+            res.json(rows);
+        }
+    );
+});
+
+// Endpoint ADMIN: Remover estação local
+router.delete('/admin/estacoes/remove', (req, res) => {
+    const { estacao_id, admin_email } = req.body;
+
+    // Verificar se é admin
+    db.get('SELECT is_admin FROM users WHERE email = ?', [admin_email], (err, user) => {
+        if (err || !user || !user.is_admin) {
+            return res.status(403).json({ error: 'Acesso negado' });
+        }
+
+        db.run(
+            `DELETE FROM estacoes_locais WHERE estacao_id = ?`,
+            [estacao_id],
+            function (err) {
+                if (err) return res.status(500).json({ error: 'Erro ao remover estação local' });
+                res.json({ success: true });
+            }
+        );
+    });
+});
+
+// Endpoint: Obter estações locais na área
+router.get('/estacoes_locais/area', (req, res) => {
+    const { lat, lng, raio } = req.query;
+    
+    if (!lat || !lng || !raio) {
+        return res.status(400).json({ error: 'Parâmetros lat, lng e raio são obrigatórios' });
+    }
+
+    // Buscar todas as estações locais (filtro por distância seria mais complexo, por agora retorna todas)
+    db.all(
+        `SELECT * FROM estacoes_locais`,
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Erro ao obter estações locais' });
+            res.json(rows);
+        }
+    );
+});
+
 // Endpoint dummy para teste de disponibilidade
 router.get('/estacao_disponibilidade/test', (req, res) => {
     res.json({ ok: true });

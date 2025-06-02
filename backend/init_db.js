@@ -112,4 +112,18 @@ db.serialize(() => {
       ultima_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS estacoes_locais (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      estacao_id TEXT UNIQUE NOT NULL,
+      nome_estacao TEXT NOT NULL,
+      nome_rua TEXT NOT NULL,
+      numero_lugares INTEGER NOT NULL,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      data_criacao TEXT NOT NULL,
+      admin_email TEXT NOT NULL
+    )
+  `);
 });

@@ -304,6 +304,7 @@ async function carregarEstacoes() {
   const raio = calcularRaioPorZoom(zoom);
 
   try {
+    // Carregar estações da API
     const response = await fetch(
       `https://api.openchargemap.io/v3/poi/?output=json&countrycode=PT&latitude=${centro.lat}&longitude=${centro.lng}&maxresults=50&distance=${raio}&distanceunit=KM&compact=true&verbose=false&key=1b6229d7-8a8d-4e66-9d0f-2e101e00f789`
     );
@@ -311,7 +312,7 @@ async function carregarEstacoes() {
     const data = await response.json();
     estacoes = data;
 
-    // Processar estações com disponibilidade real
+    // Processar estações da API
     for (const estacao of data) {
       const addr = estacao.AddressInfo;
       const id = estacao.ID;
@@ -328,18 +329,69 @@ async function carregarEstacoes() {
       criarMarcador(addr.Latitude, addr.Longitude, cor, popup);
     }
 
+    // Carregar estações locais
+    await carregarEstacoesLocais(centro, raio);
+
   } catch (error) {
     console.error('Erro ao carregar estações:', error);
+    // Tentar carregar apenas estações locais se a API falhar
+    await carregarEstacoesLocais(centro, raio);
   }
 }
 
-function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
+async function carregarEstacoesLocais(centro, raio) {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/estacoes_locais/area?lat=${centro.lat}&lng=${centro.lng}&raio=${raio}`
+    );
+
+    if (response.ok) {
+      const estacoesLocais = await response.json();
+
+      for (const estacao of estacoesLocais) {
+        const id = estacao.estacao_id;
+        const titulo = estacao.nome_estacao;
+        const endereco = estacao.nome_rua;
+        const total = estacao.numero_lugares;
+
+        // Obter disponibilidade real da base de dados
+        const disponivel = await obterDisponibilidadeEstacao(id, total);
+
+        const cor = obterCorMarcador(disponivel, total);
+        const popup = criarPopupEstacao(id, titulo, endereco, disponivel, total, true);
+
+        criarMarcador(estacao.latitude, estacao.longitude, cor, popup);
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar estações locais:', error);
+  }
+}
+
+function criarPopupEstacao(id, titulo, endereco, disponivel, total, isLocal = false) {
   // Se está em manutenção
   if (disponivel === -1) {
     if (isAdmin) {
+      const botaoRemoverEstacao = isLocal ?
+        `<button 
+          onclick="removerEstacaoLocal('${id}')" 
+          style="
+            background-color: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 5px;
+          "
+        >
+          Remover Estação
+        </button>` : '';
+
       return `
         <div>
-          <strong>${titulo}</strong><br>
+          <strong>${titulo}</strong>${isLocal ? ' 🏠' : ''}<br>
           ${endereco}<br>
           <div style="margin-top: 10px; color: #800080; font-weight: bold;">
             🔧 EM MANUTENÇÃO
@@ -359,13 +411,14 @@ function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
             >
               Remover Manutenção
             </button>
+            ${botaoRemoverEstacao}
           </div>
         </div>
       `;
     } else {
       return `
         <div>
-          <strong>${titulo}</strong><br>
+          <strong>${titulo}</strong>${isLocal ? ' 🏠' : ''}<br>
           ${endereco}<br>
           <div style="margin-top: 10px; color: #800080; font-weight: bold;">
             🔧 EM MANUTENÇÃO
@@ -378,11 +431,28 @@ function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
     }
   }
 
-  // Se é admin, mostrar opções de manutenção
+  // Se é admin, mostrar opções de manutenção e remoção
   if (isAdmin) {
+    const botaoRemoverEstacao = isLocal ?
+      `<button 
+        onclick="removerEstacaoLocal('${id}')" 
+        style="
+          background-color: #dc3545; 
+          color: white; 
+          border: none; 
+          padding: 8px 12px; 
+          border-radius: 5px; 
+          cursor: pointer; 
+          width: 100%; 
+          margin-top: 5px;
+        "
+      >
+        Remover Estação
+      </button>` : '';
+
     return `
       <div>
-        <strong>${titulo}</strong><br>
+        <strong>${titulo}</strong>${isLocal ? ' 🏠' : ''}<br>
         ${endereco}<br>
         <span style="color: #666;">Disponíveis: ${disponivel} de ${total}</span>
         <div style="margin-top: 10px;">
@@ -400,6 +470,7 @@ function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
           >
             Colocar em Manutenção
           </button>
+          ${botaoRemoverEstacao}
         </div>
       </div>
     `;
@@ -468,7 +539,7 @@ function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
 
   return `
     <div>
-      <strong>${titulo}</strong><br>
+      <strong>${titulo}</strong>${isLocal ? ' 🏠' : ''}<br>
       ${endereco}<br>
       <span style="color: #666;">Disponíveis: ${disponivel} de ${total}</span>
       ${botoes}
@@ -480,7 +551,7 @@ async function mostrarEstacaoAssociada() {
   limparMarcadores();
 
   try {
-    // Buscar dados reais da estação
+    // Primeiro tentar buscar como estação da API
     const response = await fetch(
       `https://api.openchargemap.io/v3/poi/?output=json&chargepointid=${estacaoAssociada.estacao_id}&countrycode=PT&key=1b6229d7-8a8d-4e66-9d0f-2e101e00f789`
     );
@@ -503,10 +574,44 @@ async function mostrarEstacaoAssociada() {
       }
 
       criarMarcador(addr.Latitude, addr.Longitude, cor, popup, true);
+    } else {
+      // Se não encontrar na API, buscar nas estações locais
+      await mostrarEstacaoLocalAssociada();
     }
 
   } catch (error) {
     console.error('Erro ao mostrar estação associada:', error);
+    // Tentar buscar nas estações locais
+    await mostrarEstacaoLocalAssociada();
+  }
+}
+
+async function mostrarEstacaoLocalAssociada() {
+  try {
+    const response = await fetch(`http://localhost:3000/api/admin/estacoes`);
+    if (response.ok) {
+      const estacoesLocais = await response.json();
+      const estacaoLocal = estacoesLocais.find(e => e.estacao_id === estacaoAssociada.estacao_id);
+
+      if (estacaoLocal) {
+        const titulo = estacaoLocal.nome_estacao;
+        const endereco = estacaoLocal.nome_rua;
+
+        let cor, popup;
+
+        if (estadoAtual === 'reservado') {
+          cor = '#ffa500'; // Laranja para reservado
+          popup = criarPopupReservado(estacaoAssociada.estacao_id, titulo, endereco);
+        } else if (estadoAtual === 'iniciado') {
+          cor = '#007bff'; // Azul para carregamento iniciado
+          popup = criarPopupCarregando(estacaoAssociada.estacao_id, titulo, endereco);
+        }
+
+        criarMarcador(estacaoLocal.latitude, estacaoLocal.longitude, cor, popup, true);
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao mostrar estação local associada:', error);
   }
 }
 
@@ -869,6 +974,99 @@ async function terminarCarregamento(estacaoId) {
   }
 }
 
+// === FUNÇÕES DE ADMINISTRAÇÃO DE ESTAÇÕES LOCAIS ===
+
+async function adicionarEstacaoLocal() {
+  if (!isAdmin) {
+    alert('Acesso negado');
+    return;
+  }
+
+  const nomeEstacao = prompt('Nome da estação:');
+  if (!nomeEstacao) return;
+
+  const nomeRua = prompt('Nome da rua/endereço:');
+  if (!nomeRua) return;
+
+  const numeroLugares = parseInt(prompt('Número de lugares disponíveis:'));
+  if (!numeroLugares || numeroLugares < 1) {
+    alert('Número de lugares inválido');
+    return;
+  }
+
+  const centro = map.getCenter();
+  const latitude = parseFloat(prompt('Latitude:', centro.lat.toFixed(6)));
+  const longitude = parseFloat(prompt('Longitude:', centro.lng.toFixed(6)));
+
+  if (isNaN(latitude) || isNaN(longitude)) {
+    alert('Coordenadas inválidas');
+    return;
+  }
+
+  if (!confirm(`Confirma a criação da estação?\nNome: ${nomeEstacao}\nEndereço: ${nomeRua}\nLugares: ${numeroLugares}\nCoordenadas: ${latitude}, ${longitude}`)) {
+    return;
+  }
+
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/estacoes/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome_estacao: nomeEstacao,
+        nome_rua: nomeRua,
+        numero_lugares: numeroLugares,
+        latitude: latitude,
+        longitude: longitude,
+        admin_email: localStorage.getItem('email')
+      })
+    });
+
+    if (resp.ok) {
+      alert('Estação adicionada com sucesso!');
+      await carregarEstacoes();
+    } else {
+      const error = await resp.json();
+      alert('Erro: ' + (error.error || 'Erro desconhecido'));
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar estação:', error);
+    alert('Erro de comunicação com o servidor');
+  }
+}
+
+async function removerEstacaoLocal(estacaoId) {
+  if (!isAdmin) {
+    alert('Acesso negado');
+    return;
+  }
+
+  if (!confirm('Tem certeza que deseja remover esta estação local?')) {
+    return;
+  }
+
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/estacoes/remove', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        estacao_id: estacaoId,
+        admin_email: localStorage.getItem('email')
+      })
+    });
+
+    if (resp.ok) {
+      alert('Estação removida com sucesso!');
+      await carregarEstacoes();
+    } else {
+      const error = await resp.json();
+      alert('Erro: ' + (error.error || 'Erro desconhecido'));
+    }
+  } catch (error) {
+    console.error('Erro ao remover estação:', error);
+    alert('Erro de comunicação com o servidor');
+  }
+}
+
 // === EVENTOS ===
 
 function configurarEventos() {
@@ -981,12 +1179,36 @@ window.cancelarReserva = cancelarReserva;
 window.terminarCarregamento = terminarCarregamento;
 window.colocarManutencao = colocarManutencao;
 window.removerManutencao = removerManutencao;
+window.adicionarEstacaoLocal = adicionarEstacaoLocal;
+window.removerEstacaoLocal = removerEstacaoLocal;
 
 // === INICIALIZAÇÃO ===
 
 // Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', function () {
   inicializar();
+
+  // Adicionar botão para admins adicionarem estações
+  if (localStorage.getItem('is_admin') === '1') {
+    const botaoAdicionar = document.createElement('button');
+    botaoAdicionar.textContent = '+ Estação';
+    botaoAdicionar.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1000;
+      background: #4bc0c0;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    `;
+    botaoAdicionar.onclick = adicionarEstacaoLocal;
+    document.body.appendChild(botaoAdicionar);
+  }
 });
 
 // Carregar estações inicialmente
