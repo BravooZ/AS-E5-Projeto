@@ -166,6 +166,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
+      <span style="display:none;">ID:${id}</span>
       ${adminBtn}
       <div style="margin-bottom:10px; font-weight:bold; color:#007bff;">
         Carregamento iniciado em: ${reservas[id].data} às ${reservas[id].hora}
@@ -180,6 +181,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
+      <span style="display:none;">ID:${id}</span>
       ${adminBtn}
       <div style="margin-bottom:10px; font-weight:bold; color:orange;">
         Reservado para: ${reservas[id].data} às ${reservas[id].hora}
@@ -196,6 +198,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
     return `
       <strong>${titulo}</strong><br>
       ${endereco}<br>
+      <span style="display:none;">ID:${id}</span>
       ${adminBtn}
       Disponíveis: ${available} de ${total}<br><br>
       <button
@@ -208,7 +211,7 @@ function criarPopupComReserva(titulo, endereco, available, total, id) {
         type="button"
         style="background-color: ${podeIniciar ? '#007bff' : '#6c757d'}; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: ${podeIniciar ? 'pointer' : 'not-allowed'}; margin-bottom: 10px; width: 100%;"
         ${podeIniciar ? '' : 'disabled'}
-        onclick="iniciarAgora('${id}', '${titulo}')"
+        onclick="iniciarAgora('${id}', '${titulo}', '${carroSelecionado}')"
       >Iniciar carregamento</button>
       <div id="formulario-reserva-${id}" style="display:none; margin-top:10px;">
         <label>Data: <input type="date" id="data-${id}" required value="${new Date().toISOString().split('T')[0]}"></label><br><br>
@@ -300,6 +303,7 @@ function mostrarFormularioReserva(id) {
 }
 
 async function confirmarReserva(id, titulo) {
+  console.log('Carro selecionado:', carroSelecionado); // Log the selected car
   const data = document.getElementById(`data-${id}`).value;
   const hora = document.getElementById(`hora-${id}`).value;
   if (!data || !hora) {
@@ -352,7 +356,7 @@ async function confirmarReserva(id, titulo) {
   atualizarMarcadores();
 }
 
-async function iniciarAgora(id, titulo) {
+async function iniciarAgora(id, titulo, carroSelecionado) {
   const saldoDescontado = 5; // reduzir dinheiro wallet
   const saldoOk = await descontarSaldo(saldoDescontado, true);
   if (!saldoOk) {
@@ -373,7 +377,6 @@ async function iniciarAgora(id, titulo) {
     if (match) endereco = match[1];
   }
   reservas[id] = { titulo, data, hora, cheguei: false, carro: carroSelecionado, status: 'iniciado', lat, lon, endereco };
-
   // Atualiza na base de dados
   await fetch('http://localhost:3000/api/carro_estacao/add', {
     method: 'POST',
@@ -403,31 +406,46 @@ async function cancelarReserva(id) {
   if (confirm('Tem certeza que deseja cancelar?')) {
     const reserva = reservas[id];
     if (reserva) {
-      // Só desconta saldo se for reserva ativa
-      if (reserva.status === 'reservado') {
-        const ok = await descontarSaldo(1, false);
-        if (!ok) {
-          alert('Erro ao descontar saldo ao cancelar reserva.');
+      try {
+        // Só desconta saldo se for reserva ativa
+        if (reserva.status === 'reservado') {
+          const ok = await descontarSaldo(1, false);
+          if (!ok) {
+            alert('Erro ao descontar saldo ao cancelar reserva.');
+            return;
+          }
         }
+
+        const resp = await fetch('http://localhost:3000/api/carro_estacao/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            estacao_id: id
+          })
+        });
+
+        if (resp.status === 404) {
+          alert('Associação não encontrada. Não foi possível cancelar a reserva.');
+          return;
+        } else if (!resp.ok) {
+          alert('Erro ao cancelar reserva no servidor.');
+          return;
+        }
+
+        delete reservas[id];
+
+        const userMarker = markers.find(m => m.options && m.options.userMarkerId === id);
+        if (userMarker) {
+          map.removeLayer(userMarker);
+          markers = markers.filter(m => m !== userMarker);
+        }
+
+        atualizarMarcadores();
+      } catch (error) {
+        console.error('Erro ao cancelar reserva:', error);
+        alert('Erro inesperado ao cancelar reserva.');
       }
-      await fetch('http://localhost:3000/api/carro_estacao/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          carro_id: reserva.carro,
-          estacao_id: id
-        })
-      });
     }
-    delete reservas[id];
-
-    const userMarker = markers.find(m => m.options && m.options.userMarkerId === id);
-    if (userMarker) {
-      map.removeLayer(userMarker);
-      markers = markers.filter(m => m !== userMarker);
-    }
-
-    atualizarMarcadores();
   }
 }
 
@@ -442,7 +460,52 @@ function calcularDisponiveis(ponto, reservas, id) {
   return Math.max(0, total - ocupados);
 }
 
-function atualizarMarcadores() {
+async function atualizarReservas() {
+  const email = localStorage.getItem('email');
+  if (!email) return;
+
+  try {
+    const resp = await fetch(`http://localhost:3000/api/reservas/${email}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      reservas = data.reduce((acc, reserva) => {
+        acc[reserva.estacao_id] = {
+          status: reserva.status,
+          data: reserva.data,
+          hora: reserva.hora
+        };
+        return acc;
+      }, {});
+    }
+  } catch (e) {
+    console.error('Erro ao atualizar reservas:', e);
+  }
+}
+
+// Call atualizarReservas before updating markers
+async function atualizarMarcadores() {
+  await atualizarReservas();
+
+  markers.forEach(marker => {
+    const id = marker.getPopup().getContent().match(/ID:(\d+)/)?.[1];
+    if (id && reservas[id]) {
+      const reservado = reservas[id].status === 'reservado';
+      const iniciado = reservas[id].status === 'iniciado';
+      const color = getMarkerColor(reservado ? 0 : 1, 1, reservado || iniciado);
+      const popupContent = criarPopupComReserva(
+        reservas[id].titulo,
+        reservas[id].endereco,
+        reservado ? 0 : 1,
+        1,
+        id
+      );
+      marker.setIcon(createColoredMarker(marker.getLatLng().lat, marker.getLatLng().lng, color, popupContent, reservado).options.icon);
+      marker.setPopupContent(popupContent);
+    }
+  });
+}
+
+function atualizarEstacoes() {
   markers.forEach(marker => map.removeLayer(marker));
   markers = [];
   carregarEstacoes(true); // true = atualizar sem limpar reservas
@@ -460,7 +523,6 @@ async function carregarEstacoes(manterReservas = false) {
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
   }
-
   // Se NÃO houver carro selecionado, mostra todas as estações normalmente
   if (!carroSelecionado) {
     fetch(`https://api.openchargemap.io/v3/poi/?output=json&countrycode=PT&latitude=${lat}&longitude=${lon}&maxresults=50&distance=${distancia}&distanceunit=KM&compact=true&verbose=false&key=1b6229d7-8a8d-4e66-9d0f-2e101e00f789`)
@@ -509,7 +571,6 @@ async function carregarEstacoes(manterReservas = false) {
     ultimaEstacaoAssociada = null;
     return;
   }
-
   // Se houver carro selecionado, tenta buscar associação à base de dados
   try {
     const resp = await fetch(`http://localhost:3000/api/carro_estacao/${carroSelecionado}`);
