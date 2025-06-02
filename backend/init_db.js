@@ -91,4 +91,25 @@ db.serialize(() => {
       UNIQUE(carro_id)
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS manutencao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      estacao_id TEXT NOT NULL,
+      data_inicio TEXT NOT NULL,
+      data_fim TEXT,
+      descricao TEXT,
+      admin_email TEXT NOT NULL,
+      UNIQUE(estacao_id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS estacao_ocupacao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      estacao_id TEXT NOT NULL,
+      ocupados INTEGER DEFAULT 0,
+      ultima_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 });

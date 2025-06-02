@@ -15,10 +15,13 @@ let estacoes = [];
 let markers = [];
 let estadoAtual = null; // null, 'reservado', 'carregando'
 let estacaoAssociada = null;
+let isAdmin = false;
 
 // === FUNÇÕES DE INICIALIZAÇÃO ===
 
 async function inicializar() {
+  isAdmin = localStorage.getItem('is_admin') === '1';
+
   await carregarCarros();
   await carregarSaldo();
   await verificarEstadoAtual();
@@ -140,50 +143,22 @@ let ocupacaoLocal = new Map(); // estacaoId -> número de lugares ocupados local
 let endpointDisponibilidadeExiste = null;
 
 async function obterDisponibilidadeEstacao(estacaoId, totalPontos) {
-  // Se já sabemos que o endpoint não existe, retornar imediatamente
-  if (endpointDisponibilidadeExiste === false) {
-    // Obter ocupação local
-    const ocupacaoLocalAdicional = ocupacaoLocal.get(estacaoId) || 0;
-    const disponivel = Math.max(0, totalPontos - ocupacaoLocalAdicional);
-    return disponivel;
-  }
-
-  // Se é a primeira vez, testar se o endpoint existe
-  if (endpointDisponibilidadeExiste === null) {
-    try {
-      const testResponse = await fetch(`http://localhost:3000/api/estacao_disponibilidade/test`);
-      endpointDisponibilidadeExiste = testResponse.status !== 404;
-    } catch (error) {
-      endpointDisponibilidadeExiste = false;
-    }
-    
-    // Se não existe, retornar valor com apenas ocupação local
-    if (!endpointDisponibilidadeExiste) {
-      const ocupacaoLocalAdicional = ocupacaoLocal.get(estacaoId) || 0;
-      const disponivel = Math.max(0, totalPontos - ocupacaoLocalAdicional);
-      return disponivel;
-    }
-  }
-
-  // O endpoint existe, fazer o pedido normal
-  let ocupacaoBase = 0;
+  // Primeiro verificar se está em manutenção
   try {
-    const response = await fetch(`http://localhost:3000/api/estacao_disponibilidade/${estacaoId}`);
-    if (response.ok) {
-      const data = await response.json();
-      ocupacaoBase = data.ocupados || 0;
+    const manutencaoResp = await fetch(`http://localhost:3000/api/manutencao/${estacaoId}`);
+    if (manutencaoResp.ok) {
+      const manutencaoData = await manutencaoResp.json();
+      if (manutencaoData.em_manutencao) {
+        return -1; // Indica que está em manutenção
+      }
     }
   } catch (error) {
-    console.warn(`Erro ao obter disponibilidade da estação ${estacaoId}`);
+    console.warn(`Erro ao verificar manutenção da estação ${estacaoId}`);
   }
 
-  // Obter ocupação local adicional
+  // Sempre calcula apenas com ocupação local
   const ocupacaoLocalAdicional = ocupacaoLocal.get(estacaoId) || 0;
-  
-  // Calcular disponibilidade total
-  const totalOcupados = ocupacaoBase + ocupacaoLocalAdicional;
-  const disponivel = Math.max(0, totalPontos - totalOcupados);
-  
+  const disponivel = Math.max(0, totalPontos - ocupacaoLocalAdicional);
   return disponivel;
 }
 
@@ -248,6 +223,7 @@ function calcularRaioPorZoom(zoom) {
 }
 
 function obterCorMarcador(disponivel, total) {
+  if (disponivel === -1) return 'purple'; // Manutenção
   if (disponivel === 0) return 'red';
   if (disponivel / total < 0.3) return 'orange';
   return 'green';
@@ -358,54 +334,136 @@ async function carregarEstacoes() {
 }
 
 function criarPopupEstacao(id, titulo, endereco, disponivel, total) {
+  // Se está em manutenção
+  if (disponivel === -1) {
+    if (isAdmin) {
+      return `
+        <div>
+          <strong>${titulo}</strong><br>
+          ${endereco}<br>
+          <div style="margin-top: 10px; color: #800080; font-weight: bold;">
+            🔧 EM MANUTENÇÃO
+          </div>
+          <div style="margin-top: 10px;">
+            <button 
+              onclick="removerManutencao('${id}')" 
+              style="
+                background-color: #28a745; 
+                color: white; 
+                border: none; 
+                padding: 8px 12px; 
+                border-radius: 5px; 
+                cursor: pointer; 
+                width: 100%;
+              "
+            >
+              Remover Manutenção
+            </button>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div>
+          <strong>${titulo}</strong><br>
+          ${endereco}<br>
+          <div style="margin-top: 10px; color: #800080; font-weight: bold;">
+            🔧 EM MANUTENÇÃO
+          </div>
+          <div style="margin-top: 10px; color: #666;">
+            Estação indisponível
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Se é admin, mostrar opções de manutenção
+  if (isAdmin) {
+    return `
+      <div>
+        <strong>${titulo}</strong><br>
+        ${endereco}<br>
+        <span style="color: #666;">Disponíveis: ${disponivel} de ${total}</span>
+        <div style="margin-top: 10px;">
+          <button 
+            onclick="colocarManutencao('${id}')" 
+            style="
+              background-color: #800080; 
+              color: white; 
+              border: none; 
+              padding: 8px 12px; 
+              border-radius: 5px; 
+              cursor: pointer; 
+              width: 100%;
+            "
+          >
+            Colocar em Manutenção
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Para utilizadores normais
   const podeInteragir = carroSelecionado && disponivel > 0;
   const temSaldo = saldo >= 1;
 
   let botoes = '';
   if (podeInteragir) {
-    const corReservar = temSaldo ? '#ffa500' : '#6c757d';
-    const corIniciar = '#007bff';
-    const habilitarReservar = temSaldo;
-
+    if (temSaldo) {
+      botoes = `
+        <div style="margin-top: 10px;">
+          <button 
+            onclick="reservarEstacao('${id}')" 
+            style="
+              background-color: #007bff; 
+              color: white; 
+              border: none; 
+              padding: 8px 12px; 
+              border-radius: 5px; 
+              cursor: pointer; 
+              width: 100%; 
+              margin-bottom: 5px;
+            "
+          >
+            Reservar (1€)
+          </button>
+          <button 
+            onclick="iniciarCarregamento('${id}')" 
+            style="
+              background-color: #28a745; 
+              color: white; 
+              border: none; 
+              padding: 8px 12px; 
+              border-radius: 5px; 
+              cursor: pointer; 
+              width: 100%;
+            "
+          >
+            Iniciar Carregamento
+          </button>
+        </div>
+      `;
+    } else {
+      botoes = `
+        <div style="margin-top: 10px; color: #dc3545;">
+          Saldo insuficiente para reserva
+        </div>
+      `;
+    }
+  } else if (!carroSelecionado) {
     botoes = `
-      <div style="margin-top: 10px;">
-        <button 
-          onclick="reservarEstacao('${id}')" 
-          style="
-            background-color: ${corReservar}; 
-            color: white; 
-            border: none; 
-            padding: 8px 12px; 
-            border-radius: 5px; 
-            cursor: ${habilitarReservar ? 'pointer' : 'not-allowed'}; 
-            width: 100%; 
-            margin-bottom: 5px;
-            ${habilitarReservar ? 'box-shadow: 0 0 8px orange;' : ''}
-          "
-          ${habilitarReservar ? '' : 'disabled'}
-        >
-          Reservar (1€)
-        </button>
-        <button 
-          onclick="iniciarCarregamento('${id}')" 
-          style="
-            background-color: ${corIniciar}; 
-            color: white; 
-            border: none; 
-            padding: 8px 12px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            width: 100%;
-          "
-        >
-          Iniciar Carregamento
-        </button>
+      <div style="margin-top: 10px; color: #666;">
+        Selecione um carro primeiro
       </div>
     `;
-  } else if (!carroSelecionado) {
-    botoes = '<div style="margin-top: 10px; color: #666; font-style: italic;">Selecione um carro para interagir</div>';
-  } else if (disponivel === 0) {
-    botoes = '<div style="margin-top: 10px; color: #dc3545; font-weight: bold;">Sem lugares disponíveis</div>';
+  } else {
+    botoes = `
+      <div style="margin-top: 10px; color: #666;">
+        Estação indisponível
+      </div>
+    `;
   }
 
   return `
@@ -840,6 +898,79 @@ function configurarEventos() {
   });
 }
 
+
+// === FUNÇÕES DE MANUTENÇÃO (ADMIN) ===
+
+async function colocarManutencao(estacaoId) {
+  if (!isAdmin) {
+    alert('Acesso negado');
+    return;
+  }
+
+  const descricao = prompt('Descrição da manutenção (opcional):') || 'Manutenção programada';
+
+  if (!confirm(`Confirma colocar a estação em manutenção?\nDescrição: ${descricao}`)) {
+    return;
+  }
+
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/manutencao/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        estacao_id: estacaoId,
+        descricao: descricao,
+        admin_email: localStorage.getItem('email')
+      })
+    });
+
+    if (resp.ok) {
+      alert('Estação colocada em manutenção com sucesso!');
+      await atualizarDisponibilidadeEstacao(estacaoId);
+    } else {
+      const error = await resp.json();
+      alert('Erro: ' + (error.error || 'Erro desconhecido'));
+    }
+  } catch (error) {
+    console.error('Erro ao colocar em manutenção:', error);
+    alert('Erro de comunicação com o servidor');
+  }
+}
+
+async function removerManutencao(estacaoId) {
+  if (!isAdmin) {
+    alert('Acesso negado');
+    return;
+  }
+
+  if (!confirm('Confirma remover a estação da manutenção?')) {
+    return;
+  }
+
+  try {
+    const resp = await fetch('http://localhost:3000/api/admin/manutencao/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        estacao_id: estacaoId,
+        admin_email: localStorage.getItem('email')
+      })
+    });
+
+    if (resp.ok) {
+      alert('Estação removida da manutenção com sucesso!');
+      await atualizarDisponibilidadeEstacao(estacaoId);
+    } else {
+      const error = await resp.json();
+      alert('Erro: ' + (error.error || 'Erro desconhecido'));
+    }
+  } catch (error) {
+    console.error('Erro ao remover da manutenção:', error);
+    alert('Erro de comunicação com o servidor');
+  }
+}
+
+
 // === FUNÇÕES GLOBAIS ===
 
 // Tornar funções acessíveis globalmente para os botões
@@ -848,6 +979,8 @@ window.iniciarCarregamento = iniciarCarregamento;
 window.iniciarCarregamentoReservado = iniciarCarregamentoReservado;
 window.cancelarReserva = cancelarReserva;
 window.terminarCarregamento = terminarCarregamento;
+window.colocarManutencao = colocarManutencao;
+window.removerManutencao = removerManutencao;
 
 // === INICIALIZAÇÃO ===
 
