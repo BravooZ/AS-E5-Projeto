@@ -13,7 +13,7 @@ function showReservations() {
     const container = document.getElementById('reservations-container');
     const title = document.getElementById('reservations-title');
     const list = document.getElementById('reservations-list');
-    title.textContent = "Histórico de Carregamentos";
+    title.textContent = "Transações";
     container.style.display = (container.style.display === 'block') ? 'none' : 'block';
 
     fetch(`http://localhost:3000/api/carregamentos/${email}`)
@@ -30,7 +30,7 @@ function showReservations() {
                         </div>
                         <div class="reservation-row">
                             <span class="reservation-date">${new Date(c.data_hora).toLocaleDateString()}</span>
-                            <span class="reservation-time">${new Date(c.data_hora).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span class="reservation-time">${new Date(c.data_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                     </div>`
                 ).join('');
