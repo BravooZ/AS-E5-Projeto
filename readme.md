@@ -35,7 +35,7 @@ Aplicação web para gestão de estações de carregamento de veículos elétric
 3. **Inicializar a base de dados (apenas na primeira vez):**
 
    ```sh
-   node init_db.js
+   node .\backend\init_db.js
    ```
 
 4. **Iniciar o servidor backend:**
@@ -46,7 +46,7 @@ Aplicação web para gestão de estações de carregamento de veículos elétric
      ```
    - Ou manualmente:
      ```sh
-     node server.js
+     node .\backend\server.js
      ```
 
 5. **Abrir o frontend:**
